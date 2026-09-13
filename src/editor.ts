@@ -3,7 +3,7 @@ import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators";
 import { fireEvent, LovelaceCardEditor } from "custom-card-helpers";
 
-import { RoomConfigEventData, TranslatableString, XiaomiVacuumMapCardConfig } from "./types/types";
+import { RoomConfig, RoomConfigEventData, TranslatableString, XiaomiVacuumMapCardConfig } from "./types/types";
 import { localizeWithHass } from "./localize/localize";
 import { PlatformGenerator } from "./model/generators/platform-generator";
 import {
@@ -71,7 +71,75 @@ export class XiaomiVacuumMapCardEditor extends LitElement implements Omit<Lovela
         }
     }
 
-    private static _generateRoomsConfig(): void {
+    private _generateRoomsConfig(): void {
+        const cameraState = this.hass?.states[this._camera];
+        const rooms = cameraState?.attributes?.["rooms"] as Record<string, any> | undefined;
+        if (rooms && typeof rooms === "object" && Object.keys(rooms).length > 0) {
+            const roomsTemplate = PlatformGenerator.getRoomsTemplate(this._vacuum_platform);
+            const roomsConfig = new Array<RoomConfig>();
+            for (const room_id in rooms) {
+                if (!rooms.hasOwnProperty(room_id)) continue;
+                const room = rooms[room_id];
+                if (!room.outline && !room.x0 && !room.y0 && !room.x1 && !room.y1)
+                    continue;
+                const outline = room.outline ?? [
+                    [room.x0, room.y0],
+                    [room.x1, room.y0],
+                    [room.x1, room.y1],
+                    [room.x0, room.y1],
+                ];
+                const keepFloat = outline.toString().includes(".");
+                const formatCoord = (v: number, divide = 1): number =>
+                    keepFloat ? v / divide : Math.round(v / divide);
+                const x = outline.reduce((a: number, v: any) => a + (v[0] ?? 0), 0);
+                const y = outline.reduce((a: number, v: any) => a + (v[1] ?? 0), 0);
+
+                const roomConfig = {
+                    id: room_id,
+                    icon: {
+                        name: room.icon ?? "mdi:broom",
+                        x: room.x ?? formatCoord(x, outline.length),
+                        y: room.y ?? formatCoord(y, outline.length),
+                    },
+                    label: {
+                        text: room.name ?? `Room ${room_id}`,
+                        x: room.x ?? formatCoord(x, outline.length),
+                        y: room.y ?? formatCoord(y, outline.length),
+                        offset_y: 35,
+                    },
+                    outline: outline,
+                } as RoomConfig;
+                roomsConfig.push(roomConfig);
+            }
+
+            if (roomsConfig.length > 0) {
+                const map_modes = [...(this._config?.map_modes ?? [])];
+                const existingIdx = map_modes.findIndex(
+                    m => m.template === roomsTemplate || m.template === "vacuum_clean_segment"
+                );
+                if (existingIdx >= 0) {
+                    map_modes[existingIdx] = {
+                        ...map_modes[existingIdx],
+                        predefined_selections: roomsConfig,
+                    };
+                } else {
+                    if (map_modes.length === 0) {
+                        map_modes.push(...PlatformGenerator.generateDefaultModes(this._vacuum_platform));
+                    }
+                    if (roomsTemplate) {
+                        map_modes.push({
+                            template: roomsTemplate,
+                            predefined_selections: roomsConfig,
+                        });
+                    }
+                }
+                if (this._config) {
+                    this._setConfig({ ...this._config, map_modes: map_modes });
+                }
+                this._showToast("editor.label.config_set", "mdi:check", true);
+                return;
+            }
+        }
         window.dispatchEvent(new Event(EVENT_ROOM_CONFIG_GET));
     }
 
@@ -205,7 +273,7 @@ export class XiaomiVacuumMapCardEditor extends LitElement implements Omit<Lovela
                         ${this._localize("editor.label.set_static_config")}
                     </ha-button>
                     <ha-button size="small" variant="brand" appearance="filled"
-                               @click="${() => XiaomiVacuumMapCardEditor._generateRoomsConfig()}"
+                               @click="${() => this._generateRoomsConfig()}"
                         .disabled=${roomsUnavailable}>
                         ${this._localize("editor.label.generate_rooms_config")}
                     </ha-button>
