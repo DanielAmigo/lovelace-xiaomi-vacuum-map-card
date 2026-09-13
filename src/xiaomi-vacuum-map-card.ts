@@ -748,15 +748,38 @@ export class XiaomiVacuumMapCard extends LitElement {
                     .filter(s => s.state_entity)
                     .map(s => s.state_entity as string);
                 break;
-            case SelectionType.ROOM:
-                this.selectableRooms = newMode.predefinedSelections.map(
+            case SelectionType.ROOM: {
+                let roomSelections = newMode.predefinedSelections;
+                if ((!roomSelections || roomSelections.length === 0) && this.hass) {
+                    const cameraEntity = this._getCurrentPreset().map_source?.camera;
+                    const cameraRooms = this.hass.states[cameraEntity ?? ""]?.attributes?.["rooms"] as Record<string, any> | undefined;
+                    if (cameraRooms && typeof cameraRooms === "object") {
+                        roomSelections = Object.entries(cameraRooms).map(([id, r]: [string, any]) => ({
+                            id: id,
+                            icon: {
+                                name: r.icon ?? "mdi:broom",
+                                x: r.x,
+                                y: r.y,
+                            },
+                            label: {
+                                text: r.name ?? `Room ${id}`,
+                                x: r.x,
+                                y: r.y,
+                                offset_y: 35,
+                            },
+                            outline: r.outline,
+                        }));
+                    }
+                }
+                this.selectableRooms = (roomSelections ?? []).map(
                     ps => new Room(ps as RoomConfig, this._getContext()),
                 );
                 this.selectedRooms = this.selectableRooms.filter(s => s.selected);
-                this.entitiesToManuallyUpdate = newMode.predefinedSelections
+                this.entitiesToManuallyUpdate = (roomSelections ?? [])
                     .filter(s => s.state_entity)
                     .map(s => s.state_entity as string);
                 break;
+            }
             case SelectionType.PREDEFINED_POINT:
                 const pointsFromEntities = PredefinedPoint.getFromEntities(newMode, this.hass, () =>
                     this._getContext(),
