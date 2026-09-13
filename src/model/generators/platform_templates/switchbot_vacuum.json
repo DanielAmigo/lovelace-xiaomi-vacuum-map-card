@@ -1,0 +1,22 @@
+{
+  "map_modes": {
+    "default_templates": ["vacuum_clean_segment"],
+    "templates": {
+      "vacuum_clean_segment": {
+        "name": "Clean room",
+        "icon": "mdi:floor-plan",
+        "selection_type": "ROOM",
+        "repeats_type": "NONE",
+        "max_selections": 10,
+        "service_call_schema": {
+          "service": "switchbot_vacuum.clean_rooms",
+          "service_data": {
+            "entity_id": "[[entity_id]]",
+            "rooms": "[[selection]]"
+          }
+        }
+      }
+    }
+  }
+}
+

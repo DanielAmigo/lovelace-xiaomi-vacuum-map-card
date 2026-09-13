@@ -18,6 +18,7 @@ import * as myneatoTemplate from "./platform_templates/BenjaminPaap_myneato.json
 import * as johnnyh1975RoombaPlus from "./platform_templates/johnnyh1975_roomba_plus.json";
 import * as setupDecimalTemplate from "./platform_templates/setup_decimal.json";
 import * as setupIntegerTemplate from "./platform_templates/setup_integer.json";
+import * as switchbotVacuumTemplate from "./platform_templates/switchbot_vacuum.json";
 import {
     CalibrationPoint,
     IconTemplate,
@@ -49,6 +50,7 @@ export class PlatformGenerator {
     public static ROMEDTINO_SIMPLE_WAZE_PLATFORM = "romedtino/simple-wyze-vac";
     public static BENJAMIN_PAAP_MYNEATO_PLATFORM = "BenjaminPaap/home-assistant-myneato";
     public static JOHNNYH1975_ROOMBA_PLUS = "johnnyh1975/ha_roomba_plus";
+    public static SWITCHBOT_VACUUM_PLATFORM = "jaco/switchbot-vacuum";
     public static SETUP_INTEGER_PLATFORM = "Setup integer";
     public static SETUP_DECIMAL_PLATFORM = "Setup decimal";
 
@@ -74,6 +76,7 @@ export class PlatformGenerator {
         [PlatformGenerator.DEEBOTUNIVERSE_DEEBOT_4_HOME_ASSISTANT_PLATFORM, deebotTemplate as PlatformTemplate],
         [PlatformGenerator.ROMEDTINO_SIMPLE_WAZE_PLATFORM, simpleWyzeTemplate],
         [PlatformGenerator.BENJAMIN_PAAP_MYNEATO_PLATFORM, myneatoTemplate as PlatformTemplate],
+        [PlatformGenerator.SWITCHBOT_VACUUM_PLATFORM, switchbotVacuumTemplate as PlatformTemplate],
         [PlatformGenerator.SETUP_INTEGER_PLATFORM, setupIntegerTemplate],
         [PlatformGenerator.SETUP_DECIMAL_PLATFORM, setupDecimalTemplate],
     ]);
@@ -97,6 +100,7 @@ export class PlatformGenerator {
         [PlatformGenerator.DEEBOTUNIVERSE_DEEBOT_4_HOME_ASSISTANT_PLATFORM, "DeebotUniverseDeebot4homeAssistant"],
         [PlatformGenerator.ROMEDTINO_SIMPLE_WAZE_PLATFORM, "romedtinoSimpleWyze"],
         [PlatformGenerator.BENJAMIN_PAAP_MYNEATO_PLATFORM, "BenjaminPaapMyNeato"],
+        [PlatformGenerator.SWITCHBOT_VACUUM_PLATFORM, "jacoSwitchbotVacuum"],
         [PlatformGenerator.SETUP_INTEGER_PLATFORM, "setup"],
         [PlatformGenerator.SETUP_DECIMAL_PLATFORM, "setup"],
     ]);
@@ -116,8 +120,12 @@ export class PlatformGenerator {
     }
 
     public static getPlatformName(platform: string | undefined): string {
-        return (platform ?? PlatformGenerator.XIAOMI_MIIO_PLATFORM)
+        let name = (platform ?? PlatformGenerator.XIAOMI_MIIO_PLATFORM)
             .replace(PlatformGenerator.DEFAULT_PLATFORM, PlatformGenerator.XIAOMI_MIIO_PLATFORM);
+        if (name === "switchbot_vacuum") {
+            name = PlatformGenerator.SWITCHBOT_VACUUM_PLATFORM;
+        }
+        return name;
     }
 
     public static getPlatformsDocumentationUrl(platform: string): string {
