@@ -1,18 +1,59 @@
 {
   "map_modes": {
-    "default_templates": ["vacuum_clean_segment"],
+    "default_templates": [
+      "vacuum_clean_segment",
+      "vacuum_clean_segment_sweep",
+      "vacuum_clean_segment_mop"
+    ],
     "templates": {
       "vacuum_clean_segment": {
-        "name": "Clean room",
+        "name": "Clean room (Sweep & Mop)",
         "icon": "mdi:floor-plan",
         "selection_type": "ROOM",
-        "repeats_type": "NONE",
+        "repeats_type": "REPEAT",
+        "max_repeats": 2,
         "max_selections": 10,
         "service_call_schema": {
           "service": "switchbot_vacuum.clean_rooms",
           "service_data": {
             "entity_id": "[[entity_id]]",
-            "rooms": "[[selection]]"
+            "rooms": "[[selection]]",
+            "mode": "sweep_mop",
+            "times": "[[repeats]]"
+          }
+        }
+      },
+      "vacuum_clean_segment_sweep": {
+        "name": "Sweep room (Vacuum only)",
+        "icon": "mdi:vacuum",
+        "selection_type": "ROOM",
+        "repeats_type": "REPEAT",
+        "max_repeats": 2,
+        "max_selections": 10,
+        "service_call_schema": {
+          "service": "switchbot_vacuum.clean_rooms",
+          "service_data": {
+            "entity_id": "[[entity_id]]",
+            "rooms": "[[selection]]",
+            "mode": "sweep",
+            "times": "[[repeats]]"
+          }
+        }
+      },
+      "vacuum_clean_segment_mop": {
+        "name": "Mop room (Mop only)",
+        "icon": "mdi:water",
+        "selection_type": "ROOM",
+        "repeats_type": "REPEAT",
+        "max_repeats": 2,
+        "max_selections": 10,
+        "service_call_schema": {
+          "service": "switchbot_vacuum.clean_rooms",
+          "service_data": {
+            "entity_id": "[[entity_id]]",
+            "rooms": "[[selection]]",
+            "mode": "mop",
+            "times": "[[repeats]]"
           }
         }
       }
